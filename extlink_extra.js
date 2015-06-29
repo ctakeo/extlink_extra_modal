@@ -243,6 +243,41 @@ Drupal.behaviors.extlink_extra = {
         }
       });
     }
+
+
+    if (Drupal.settings.extlink_extra.extlink_alert_type == 'bootstrap') {
+      // Go through each <a> tag with an 'ext' class,*/
+      $.each($("a.ext"), function(index, value) {
+        $(this).attr('data-toggle', 'modal');
+      });
+      var customModal = '<div class="modal" id="myModal">'+
+        '<div class="modal-dialog">'+
+            '<div class="modal-content">'+
+              '<div class="modal-header">'+
+                '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>'+
+                '<h4 class="modal-title">You\'re leaving the site</h4>'+
+             '</div><div class="container"></div>'+
+             '<div class="modal-body">'+
+                'Content for the dialog / modal goes here.'+
+                '<br>'+
+                '<br>'+
+                '<br>'+
+                '<br>'+
+                '<br>'+
+              '</div>'+
+              '<div class="modal-footer">'+
+                '<button data-dismiss="modal" id="modal-close-button" class="btn">Close</button>'+
+                '<button id="modal-go-button" class="btn btn-primary">Go</button>'+
+             ' </div>'+
+            '</div>'+
+          '</div>'+
+      '</div>';
+
+
+    $('body').append(customModal);
+    $('#modal').css('display', 'none');
+
+    }
   }
 }
 

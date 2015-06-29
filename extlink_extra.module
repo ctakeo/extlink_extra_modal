@@ -117,7 +117,7 @@ function extlink_extra_form_alter(&$form, &$form_state, $form_id) {}
  */
 function extlink_extra_form_extlink_admin_settings_alter(&$form, &$form_state) {
   // Provide an option for which type of external link warning.
-  $form['extlink_alert_type'] = array(
+ $form['extlink_alert_type'] = array(
     '#type' => 'select',
     '#title' => t('When external links are clicked'),
     '#default_value' => variable_get('extlink_alert_type', 'colorbox'),
@@ -125,6 +125,7 @@ function extlink_extra_form_extlink_admin_settings_alter(&$form, &$form_state) {
       '' => t('Don\'t display a warning message'),
       'confirm' => t('Warn with a confirmation popup'),
       'page' => t('Warn on a separate page'),
+      'bootstrap' => t('Display warning message in a bootstrap modal.'),
     ),
   );
 
