@@ -161,6 +161,18 @@ Drupal.behaviors.extlink_extra = {
       return false;
     }
 
+    if (Drupal.settings.extlink_extra.extlink_alert_type == 'bootstrap') {
+      $('#myModal .modal-body').html(Drupal.settings.extlink.extAlertText.value);
+      $('#myModal #modal-close-button').off();
+      $('#myModal #modal-go-button').off();
+      $('#myModal #modal-go-button').on('click', function(){
+                redirect('go', external_url);
+      });
+
+      
+      $("#myModal").modal('show');
+    }
+
     if (Drupal.settings.extlink_extra.extlink_alert_type == 'page') {
       // If we're here, alert text is on but pop-up is off; we should redirect to an intermediate confirm page.
       window.location = alerturl;
@@ -285,6 +297,13 @@ Drupal.behaviors.extlink_extra = {
 
 // Global var that will be our JS interval.
 var extlink_int;
+
+function redirect( whatShouldIDo, whereTo ) {
+  if (whatShouldIDo == 'go')
+    window.location = whereTo;
+  else
+    jQuery.colorbox.close();
+}
 
 function extlink_extra_timer() {
   if (Drupal.settings.extlink_extra.extlink_alert_timer == 0 || Drupal.settings.extlink_extra.extlink_alert_timer == null) {

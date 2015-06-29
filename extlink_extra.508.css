@@ -4,3 +4,7 @@ span.ext {
   text-indent: -99999px;
   width: 12px;
 }
+
+#myDiv{
+	display: none;
+}
