@@ -25,6 +25,13 @@ function extlink_extra_page_build() {
   $url_params['back_url'] = isset($_GET['back_url']) ? valid_url($_GET['back_url'], $absolute = TRUE) ? drupal_strip_dangerous_protocols($_GET['back_url']) : NULL : NULL;
 
   // Expose settings from our settings page to javascript.
+
+
+
+
+
+
+
   drupal_add_js(array(
     'extlink_extra' => array(
       'extlink_alert_type' => variable_get('extlink_alert_type', 'colorbox'),
@@ -36,10 +43,10 @@ function extlink_extra_page_build() {
       'extlink_508_text' => variable_get('extlink_508_text', EXTLINK_EXTRA_508_TEXT),
       'extlink_url_override' => variable_get('extlink_url_override', 0),
       'extlink_url_params' => $url_params,
+      'extlink_alert_text_tokenized' => theme('extlink_extra_leaving'),
       ),
     ), 'setting'
   );
-
   // Add an extra CSS file if our 508 fix option is on.
   if (variable_get('extlink_508_fix', 0)) {
     drupal_add_css($path . '/extlink_extra.508.css');
@@ -88,6 +95,7 @@ function template_preprocess_extlink_extra_leaving(&$vars) {
     ),
   );
   $vars['alert_text'] = check_markup(token_replace($eat_default['value'], $extlink_token_data), $eat_default['format']);
+
   $vars['page_title'] = token_replace(variable_get('extlink_page_title', NULL), $extlink_token_data);
   drupal_set_title($vars['page_title']);
   $vars['timer'] = extlink_extra_timer_markup();
@@ -98,9 +106,9 @@ function template_preprocess_extlink_extra_leaving(&$vars) {
  */
 function extlink_extra_leaving_page() {
   $output = theme('extlink_extra_leaving');
-
   // We might not need to have drupal render all the rest of the html if this is a javascript request.
   if (isset($_REQUEST['js'])) {
+    dsm($output);
     print $output;
     exit();
   }

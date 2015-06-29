@@ -28,6 +28,7 @@ $site_name = (theme_get_setting('toggle_name') ? filter_xss_admin(variable_get('
 
 ?>
 <div class="extlink-extra-leaving">
+  <p style"color: red;">asdkjhasdklhddhkldhasd</p>
   <h2>You are leaving the <?php $site_name; ?> website</h2>
   <p>You are being directed to a third-party website:</p>
   <p><strong><?php print $external_url; ?></strong></p>
