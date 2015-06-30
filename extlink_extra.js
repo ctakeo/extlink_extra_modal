@@ -161,32 +161,11 @@ Drupal.behaviors.extlink_extra = {
       return false;
     }
 
-    if (Drupal.settings.extlink_extra.extlink_alert_type == 'bootstrap') {
-      var customModal = '<div class="modal" id="myModal">'+
-        '<div class="modal-dialog">'+
-            '<div class="modal-content">'+
-              '<div class="modal-header">'+
-                '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>'+
-                '<h4 class="modal-title">You\'re leaving the site</h4>'+
-             '</div><div class="container"></div>'+
-             '<div class="modal-body">'+
-                'Content for the dialog / modal goes here.'+
-                '<br>'+
-                '<br>'+
-                '<br>'+
-                '<br>'+
-                '<br>'+
-              '</div>'+
-              '<div class="modal-footer">'+
-                '<button data-dismiss="modal" id="modal-close-button" class="btn">Close</button>'+
-                '<button id="modal-go-button" class="btn btn-primary">Go</button>'+
-             ' </div>'+
-            '</div>'+
-          '</div>'+
-      '</div>';
-      $('body').append(customModal);
-      $('#myModal .modal-body').html(Drupal.settings.extlink_extra.extlink_alert_text_tokenized);
 
+    if (Drupal.settings.extlink_extra.extlink_alert_type == 'bootstrap') {
+      if ($('body').has('#myModal').length == 0){
+        $('body').append(Drupal.settings.extlink_extra.extlink_alert_text_modal);
+      }
       $("#myModal").modal('show');
       $('#myModal #modal-close-button').off();
       $('#myModal #modal-go-button').off();
@@ -279,9 +258,12 @@ Drupal.behaviors.extlink_extra = {
     }
 
 
+//"/externallinks-clean-modal-changes/now-leaving?js=1 .extlink-extra-leaving"
+
     if (Drupal.settings.extlink_extra.extlink_alert_type == 'bootstrap') {
       $.each($("a.ext"), function(index, value) {
         $(this).attr('data-toggle', 'modal');
+        //$(this).attr('href', Drupal.settings.extlink_extra.extlink_alert_url+'?js=1 .extlink-extra-leaving');
       });
       /*var customModal = '<div class="modal" id="myModal">'+
         '<div class="modal-dialog">'+

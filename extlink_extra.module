@@ -26,27 +26,32 @@ function extlink_extra_page_build() {
 
   // Expose settings from our settings page to javascript.
 
+    $js_variables = array(
+      'extlink_extra' => array(
+        'extlink_alert_type' => variable_get('extlink_alert_type', ''),
+        'extlink_alert_timer' => variable_get('extlink_alert_timer', 0),
+        'extlink_alert_url' => url('now-leaving', array('query' => $aQuery)),
+        'extlink_cache_fix' => variable_get('extlink_cache_fix', 0),
+        'extlink_exclude_warning' => variable_get('extlink_exclude_warning', ''),
+        'extlink_508_fix' => variable_get('extlink_508_fix', 0),
+        'extlink_508_text' => variable_get('extlink_508_text', EXTLINK_EXTRA_508_TEXT),
+        'extlink_url_override' => variable_get('extlink_url_override', 0),
+        'extlink_url_params' => $url_params,
+        ),
+      ); 
 
-
-
-
-
-
-  drupal_add_js(array(
-    'extlink_extra' => array(
-      'extlink_alert_type' => variable_get('extlink_alert_type', 'colorbox'),
-      'extlink_alert_timer' => variable_get('extlink_alert_timer', 0),
-      'extlink_alert_url' => url('now-leaving', array('query' => $aQuery)),
-      'extlink_cache_fix' => variable_get('extlink_cache_fix', 0),
-      'extlink_exclude_warning' => variable_get('extlink_exclude_warning', ''),
-      'extlink_508_fix' => variable_get('extlink_508_fix', 0),
-      'extlink_508_text' => variable_get('extlink_508_text', EXTLINK_EXTRA_508_TEXT),
-      'extlink_url_override' => variable_get('extlink_url_override', 0),
-      'extlink_url_params' => $url_params,
-      'extlink_alert_text_tokenized' => theme('extlink_extra_leaving'),
-      ),
-    ), 'setting'
-  );
+  if (variable_get('extlink_alert_type', '') == 'bootstrap'){
+    $leaving_modal_array = array('extlink_alert_text_modal' => theme('extlink_extra_leaving_modal'));    
+    $temp_js_variables = array('extlink_extra' => array_merge($js_variables['extlink_extra'], $leaving_modal_array));
+    drupal_add_js($temp_js_variables, 'setting');
+  }
+  else {
+    drupal_add_js($temp_js_variables, 'setting');
+  }
+  // Add an extra CSS file if our 508 fix option is on.
+  if (variable_get('extlink_508_fix', 0)) {
+    drupal_add_css($path . '/extlink_extra.508.css');
+  }
   // Add an extra CSS file if our 508 fix option is on.
   if (variable_get('extlink_508_fix', 0)) {
     drupal_add_css($path . '/extlink_extra.508.css');
@@ -81,10 +86,18 @@ function extlink_extra_theme() {
       'variables' => array(),
       'template' => 'extlink-extra-leaving',
     ),
+    'extlink_extra_leaving_modal' => array(
+      'variables' => array(),
+      'template' => 'extlink-extra-leaving2',
+    ),
   );
 }
 
 function template_preprocess_extlink_extra_leaving(&$vars) {
+  _extlink_extra_template($vars);
+}
+
+function _extlink_extra_template(&$vars) {
   $eat_default = variable_get('extlink_alert_text', array('value' => 'This link will take you to an external web site. We are not responsible for their content.', 'format' => NULL));
   $vars['external_url'] = variable_get('extlink_cache_fix', 0) ? 'external-url-placeholder' : $_COOKIE['external_url'] ;
   $vars['back_url'] = variable_get('extlink_cache_fix', 0) ? 'back-url-placeholder' : $_COOKIE['back_url'];
@@ -101,14 +114,18 @@ function template_preprocess_extlink_extra_leaving(&$vars) {
   $vars['timer'] = extlink_extra_timer_markup();
 }
 
+function template_preprocess_extlink_extra_leaving_modal(&$vars) {  
+  _extlink_extra_template($vars);
+}
+
 /**
  * Page callback function for '/now-leaving'.
  */
 function extlink_extra_leaving_page() {
   $output = theme('extlink_extra_leaving');
+  
   // We might not need to have drupal render all the rest of the html if this is a javascript request.
   if (isset($_REQUEST['js'])) {
-    dsm($output);
     print $output;
     exit();
   }
