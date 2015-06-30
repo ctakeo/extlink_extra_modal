@@ -46,7 +46,7 @@ function extlink_extra_page_build() {
     drupal_add_js($temp_js_variables, 'setting');
   }
   else {
-    drupal_add_js($temp_js_variables, 'setting');
+    drupal_add_js($js_variables, 'setting');
   }
   // Add an extra CSS file if our 508 fix option is on.
   if (variable_get('extlink_508_fix', 0)) {

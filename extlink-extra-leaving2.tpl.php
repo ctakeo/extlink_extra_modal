@@ -6,7 +6,7 @@ Don't remove any CSS classes if you want them to function correctly, but add any
 */
 ?>
 <div class="extlink-extra-leaving">
-	<div class="modal" id="myModal">
+	<div class="modal" id="testModalId">
     <div class="modal-dialog">
       <div class="modal-content">
       	<div class="modal-header">
