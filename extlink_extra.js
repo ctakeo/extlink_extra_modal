@@ -162,13 +162,11 @@ Drupal.behaviors.extlink_extra = {
     }
 
     if (Drupal.settings.extlink_extra.extlink_alert_type == 'bootstrap') {
-      if ($('body').has('#testModalId').length == 0){
+      if ($('body').has('#extlink-extra-leaving-modal').length == 0){
         $('body').append(Drupal.settings.extlink_extra.extlink_alert_text_modal);
       }
-      $("#testModalId").modal('show');
-      /*$('#testModalId #modal-close-button').off();
-      $('#testModalId #modal-go-button').off();*/
-      $('#testModalId #modal-go-button').on('click', function(){
+      $("#extlink-extra-leaving-modal").modal('show');
+      $('#extlink-extra-leaving-modal #modal-go-button').on('click', function(){
         redirect('go', external_url);
       });
     }
