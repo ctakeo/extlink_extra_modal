@@ -88,7 +88,7 @@ function extlink_extra_theme() {
     ),
     'extlink_extra_leaving_modal' => array(
       'variables' => array(),
-      'template' => 'extlink-extra-leaving2',
+      'template' => 'extlink-extra-leaving-modal',
     ),
   );
 }
