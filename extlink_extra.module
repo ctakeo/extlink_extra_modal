@@ -92,7 +92,7 @@ function extlink_extra_theme() {
     ),
     'extlink_extra_leaving_modal' => array(     //Template used when the user selects bootstrap
       'variables' => array(),
-      'template' => 'extlink-extra-leaving-modal',
+      'template' => 'extlink-extra-leaving-bootstrap-modal',
     ),
   );
 }
