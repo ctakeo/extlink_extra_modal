@@ -11,7 +11,7 @@ Don't remove any CSS classes if you want them to function correctly, but add any
       <div class="modal-content">
       	<div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title">You\'re leaving the site</h4>
+          <h4 class="modal-title">You're leaving the site</h4>
        </div><div class="container"></div>
        <div class="modal-body">
        		<?php 
