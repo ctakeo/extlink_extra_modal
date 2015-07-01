@@ -15,7 +15,7 @@ Don't remove any CSS classes if you want them to function correctly, but add any
        </div><div class="container"></div>
        <div class="modal-body">
        		<?php 
-				  		print $alert_text; 
+				  	print $alert_text; 
 				  ?>
         </div>
         <div class="modal-footer">

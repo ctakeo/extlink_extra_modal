@@ -25,23 +25,27 @@ function extlink_extra_page_build() {
   $url_params['back_url'] = isset($_GET['back_url']) ? valid_url($_GET['back_url'], $absolute = TRUE) ? drupal_strip_dangerous_protocols($_GET['back_url']) : NULL : NULL;
 
   // Expose settings from our settings page to javascript.
+  //The js information passed to the .js file varies depending on wheter the used select bootstrap modal or not.
+  //Instantiating the variables before avoid a lot of unecessary code.
+  $js_variables = array(
+    'extlink_extra' => array(
+      'extlink_alert_type' => variable_get('extlink_alert_type', ''),
+      'extlink_alert_timer' => variable_get('extlink_alert_timer', 0),
+      'extlink_alert_url' => url('now-leaving', array('query' => $aQuery)),
+      'extlink_cache_fix' => variable_get('extlink_cache_fix', 0),
+      'extlink_exclude_warning' => variable_get('extlink_exclude_warning', ''),
+      'extlink_508_fix' => variable_get('extlink_508_fix', 0),
+      'extlink_508_text' => variable_get('extlink_508_text', EXTLINK_EXTRA_508_TEXT),
+      'extlink_url_override' => variable_get('extlink_url_override', 0),
+      'extlink_url_params' => $url_params,
+      ),
+    ); 
 
-    $js_variables = array(
-      'extlink_extra' => array(
-        'extlink_alert_type' => variable_get('extlink_alert_type', ''),
-        'extlink_alert_timer' => variable_get('extlink_alert_timer', 0),
-        'extlink_alert_url' => url('now-leaving', array('query' => $aQuery)),
-        'extlink_cache_fix' => variable_get('extlink_cache_fix', 0),
-        'extlink_exclude_warning' => variable_get('extlink_exclude_warning', ''),
-        'extlink_508_fix' => variable_get('extlink_508_fix', 0),
-        'extlink_508_text' => variable_get('extlink_508_text', EXTLINK_EXTRA_508_TEXT),
-        'extlink_url_override' => variable_get('extlink_url_override', 0),
-        'extlink_url_params' => $url_params,
-        ),
-      ); 
-
-  if (variable_get('extlink_alert_type', '') == 'bootstrap'){
+  //If the way to show the message is the bootstrap modal
+  if (variable_get('extlink_alert_type', '') == 'bootstrap') {
+    //We get the content of the custom theme
     $leaving_modal_array = array('extlink_alert_text_modal' => theme('extlink_extra_leaving_modal'));    
+    //And add it to the array of variables
     $temp_js_variables = array('extlink_extra' => array_merge($js_variables['extlink_extra'], $leaving_modal_array));
     drupal_add_js($temp_js_variables, 'setting');
   }
@@ -86,7 +90,7 @@ function extlink_extra_theme() {
       'variables' => array(),
       'template' => 'extlink-extra-leaving',
     ),
-    'extlink_extra_leaving_modal' => array(
+    'extlink_extra_leaving_modal' => array(     //Template used when the user selects bootstrap
       'variables' => array(),
       'template' => 'extlink-extra-leaving-modal',
     ),
@@ -97,6 +101,7 @@ function template_preprocess_extlink_extra_leaving(&$vars) {
   _extlink_extra_template($vars);
 }
 
+//Since the code to pass the variables to the templates are the same, I just create a method to be called by the preprocess hook
 function _extlink_extra_template(&$vars) {
   $eat_default = variable_get('extlink_alert_text', array('value' => 'This link will take you to an external web site. We are not responsible for their content.', 'format' => NULL));
   $vars['external_url'] = variable_get('extlink_cache_fix', 0) ? 'external-url-placeholder' : $_COOKIE['external_url'] ;
@@ -141,8 +146,8 @@ function extlink_extra_form_alter(&$form, &$form_state, $form_id) {}
  * Implementation of hook_form_FORM_ID_alter().
  */
 function extlink_extra_form_extlink_admin_settings_alter(&$form, &$form_state) {
-  // Provide an option for which type of external link warning.
- $form['extlink_alert_type'] = array(
+    // Provide an option for which type of external link warning.
+  $form['extlink_alert_type'] = array(
     '#type' => 'select',
     '#title' => t('When external links are clicked'),
     '#default_value' => variable_get('extlink_alert_type', 'colorbox'),
@@ -150,9 +155,16 @@ function extlink_extra_form_extlink_admin_settings_alter(&$form, &$form_state) {
       '' => t('Don\'t display a warning message'),
       'confirm' => t('Warn with a confirmation popup'),
       'page' => t('Warn on a separate page'),
-      'bootstrap' => t('Display warning message in a bootstrap modal.'),
     ),
   );
+
+  //Check if bootstrap is installed
+  foreach (list_themes() as $current_theme) {
+    if ($current_theme->name == 'bootstrap') {
+      $form['extlink_alert_type']['#options']['bootstrap'] = t('Display warning message in a bootstrap modal.');
+      break;
+    }
+  }
 
   if (module_exists('colorbox')) {
     $form['extlink_alert_type']['#options']['colorbox'] = t('Warn using a modal dialog (colorbox)');

@@ -162,10 +162,13 @@ Drupal.behaviors.extlink_extra = {
     }
 
     if (Drupal.settings.extlink_extra.extlink_alert_type == 'bootstrap') {
+      //If the template is not appended yet
       if ($('body').has('#extlink-extra-leaving-modal').length == 0){
+        //Append it
         $('body').append(Drupal.settings.extlink_extra.extlink_alert_text_modal);
       }
-      $("#extlink-extra-leaving-modal").modal('show');
+      //Shows the modal and add the click handler
+      $('#extlink-extra-leaving-modal').modal('show');
       $('#extlink-extra-leaving-modal #modal-go-button').on('click', function(){
         redirect('go', external_url);
       });
@@ -254,13 +257,11 @@ Drupal.behaviors.extlink_extra = {
       });
     }
 
-
-//"/externallinks-clean-modal-changes/now-leaving?js=1 .extlink-extra-leaving"
-
     if (Drupal.settings.extlink_extra.extlink_alert_type == 'bootstrap') {
+      //Go to every link included by the module
       $.each($("a.ext"), function(index, value) {
+        //Add the data-toggle attribute. Without this the page will not wait until the user clicks go.
         $(this).attr('data-toggle', 'modal');
-        //$(this).attr('href', Drupal.settings.extlink_extra.extlink_alert_url+'?js=1 .extlink-extra-leaving');
       });
 
     }
