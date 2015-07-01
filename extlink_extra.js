@@ -163,13 +163,13 @@ Drupal.behaviors.extlink_extra = {
 
     if (Drupal.settings.extlink_extra.extlink_alert_type == 'bootstrap') {
       //If the template is not appended yet
-      if ($('body').has('#extlink-extra-leaving-modal').length == 0){
+      if ($('body').has('#extlink-extra-leaving-bootstrap-modal').length == 0){
         //Append it
         $('body').append(Drupal.settings.extlink_extra.extlink_alert_text_modal);
       }
       //Shows the modal and add the click handler
-      $('#extlink-extra-leaving-modal').modal('show');
-      $('#extlink-extra-leaving-modal #modal-go-button').on('click', function(){
+      $('#extlink-extra-leaving-bootstrap-modal').modal('show');
+      $('#extlink-extra-leaving-bootstrap-modal #modal-go-button').on('click', function(){
         redirect('go', external_url);
       });
     }
