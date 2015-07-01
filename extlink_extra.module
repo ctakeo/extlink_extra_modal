@@ -44,7 +44,7 @@ function extlink_extra_page_build() {
   //If the way to show the message is the bootstrap modal
   if (variable_get('extlink_alert_type', '') == 'bootstrap') {
     //We get the content of the custom theme
-    $leaving_modal_array = array('extlink_alert_text_modal' => theme('extlink_extra_leaving_modal'));    
+    $leaving_modal_array = array('extlink_alert_text_modal' => theme('extlink_extra_leaving_bootstrap_modal'));    
     //And add it to the array of variables
     $temp_js_variables = array('extlink_extra' => array_merge($js_variables['extlink_extra'], $leaving_modal_array));
     drupal_add_js($temp_js_variables, 'setting');
@@ -90,7 +90,7 @@ function extlink_extra_theme() {
       'variables' => array(),
       'template' => 'extlink-extra-leaving',
     ),
-    'extlink_extra_leaving_modal' => array(     //Template used when the user selects bootstrap
+    'extlink_extra_leaving_bootstrap_modal' => array(     //Template used when the user selects bootstrap
       'variables' => array(),
       'template' => 'extlink-extra-leaving-bootstrap-modal',
     ),
@@ -119,7 +119,7 @@ function _extlink_extra_template(&$vars) {
   $vars['timer'] = extlink_extra_timer_markup();
 }
 
-function template_preprocess_extlink_extra_leaving_modal(&$vars) {  
+function template_preprocess_extlink_extra_leaving_bootstrap_modal(&$vars) {  
   _extlink_extra_template($vars);
 }
 
