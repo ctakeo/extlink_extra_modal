@@ -163,15 +163,20 @@ Drupal.behaviors.extlink_extra = {
 
     if (Drupal.settings.extlink_extra.extlink_alert_type == 'bootstrap') {
       //If the template is not appended yet
-      if ($('body').has('#extlink-extra-leaving-bootstrap-modal').length == 0){
-        //Append it
-        $('body').append(Drupal.settings.extlink_extra.extlink_alert_text_modal);
+      if ($('body').has('#extlink-extra-leaving-bootstrap-modal').length == 0) {
+        //Make an ajax request
+        $.get( Drupal.settings.basePath+"now-leaving-bs", function( data ) {
+          var modal = $('.extlink-extra-leaving', data);
+          //And append it
+          $( "body" ).append( modal );
+          $('#extlink-extra-leaving-bootstrap-modal').modal('show');
+          $('#extlink-extra-leaving-bootstrap-modal #modal-go-button').on('click', function(){
+            redirect('go', external_url);
+          });
+        });
       }
-      //Shows the modal and add the click handler
       $('#extlink-extra-leaving-bootstrap-modal').modal('show');
-      $('#extlink-extra-leaving-bootstrap-modal #modal-go-button').on('click', function(){
-        redirect('go', external_url);
-      });
+
     }
 
     if (Drupal.settings.extlink_extra.extlink_alert_type == 'page') {
@@ -263,7 +268,6 @@ Drupal.behaviors.extlink_extra = {
         //Add the data-toggle attribute. Without this the page will not wait until the user clicks go.
         $(this).attr('data-toggle', 'modal');
       });
-
     }
   }
 }

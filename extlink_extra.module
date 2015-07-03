@@ -27,7 +27,7 @@ function extlink_extra_page_build() {
   // Expose settings from our settings page to javascript.
   //The js information passed to the .js file varies depending on wheter the used select bootstrap modal or not.
   //Instantiating the variables before avoid a lot of unecessary code.
-  $js_variables = array(
+  drupal_add_js(array(
     'extlink_extra' => array(
       'extlink_alert_type' => variable_get('extlink_alert_type', ''),
       'extlink_alert_timer' => variable_get('extlink_alert_timer', 0),
@@ -39,19 +39,8 @@ function extlink_extra_page_build() {
       'extlink_url_override' => variable_get('extlink_url_override', 0),
       'extlink_url_params' => $url_params,
       ),
-    ); 
+    ) ,'setting');
 
-  //If the way to show the message is the bootstrap modal
-  if (variable_get('extlink_alert_type', '') == 'bootstrap') {
-    //We get the content of the custom theme
-    $leaving_modal_array = array('extlink_alert_text_modal' => theme('extlink_extra_leaving_bootstrap_modal'));    
-    //And add it to the array of variables
-    $temp_js_variables = array('extlink_extra' => array_merge($js_variables['extlink_extra'], $leaving_modal_array));
-    drupal_add_js($temp_js_variables, 'setting');
-  }
-  else {
-    drupal_add_js($js_variables, 'setting');
-  }
   // Add an extra CSS file if our 508 fix option is on.
   if (variable_get('extlink_508_fix', 0)) {
     drupal_add_css($path . '/extlink_extra.508.css');
@@ -74,6 +63,13 @@ function extlink_extra_menu() {
   $items['now-leaving'] = array(
     'title' => 'You are about to leave this site', // This title will get replaced by tokens.
     'page callback' => 'extlink_extra_leaving_page',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['now-leaving-bs'] = array(
+    'title' => 'You are about to leave this site', // This title will get replaced by tokens.
+    'page callback' => 'extlink_extra_leaving_page_bs',
     'access arguments' => array('access content'),
     'type' => MENU_CALLBACK,
   );
@@ -103,6 +99,7 @@ function template_preprocess_extlink_extra_leaving(&$vars) {
 
 //Since the code to pass the variables to the templates are the same, I just create a method to be called by the preprocess hook
 function _extlink_extra_template(&$vars) {
+
   $eat_default = variable_get('extlink_alert_text', array('value' => 'This link will take you to an external web site. We are not responsible for their content.', 'format' => NULL));
   $vars['external_url'] = variable_get('extlink_cache_fix', 0) ? 'external-url-placeholder' : $_COOKIE['external_url'] ;
   $vars['back_url'] = variable_get('extlink_cache_fix', 0) ? 'back-url-placeholder' : $_COOKIE['back_url'];
@@ -121,6 +118,16 @@ function _extlink_extra_template(&$vars) {
 
 function template_preprocess_extlink_extra_leaving_bootstrap_modal(&$vars) {  
   _extlink_extra_template($vars);
+}
+
+
+/**
+ * Page callback function for '/now-leaving-bs'
+ */
+function extlink_extra_leaving_page_bs() {
+  $output = theme('extlink_extra_leaving_bootstrap_modal');
+  dsm($output);
+  return $output;
 }
 
 /**
