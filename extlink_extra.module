@@ -126,7 +126,6 @@ function template_preprocess_extlink_extra_leaving_bootstrap_modal(&$vars) {
  */
 function extlink_extra_leaving_page_bs() {
   $output = theme('extlink_extra_leaving_bootstrap_modal');
-  dsm($output);
   return $output;
 }
 
