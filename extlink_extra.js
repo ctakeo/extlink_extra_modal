@@ -124,6 +124,7 @@ Drupal.behaviors.extlink_extra = {
     // Allow the default behavior for link if it's within the warning area.
     // This keeps us from firing an infinite loop of reactions.
     e.preventDefault();
+    e.stopPropagation();
     if (isInExtraLeavingContainer(this)) {
       return true;
     }
