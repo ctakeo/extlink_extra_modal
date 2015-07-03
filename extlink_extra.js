@@ -123,10 +123,11 @@ Drupal.behaviors.extlink_extra = {
   clickReaction: function(e) {
     // Allow the default behavior for link if it's within the warning area.
     // This keeps us from firing an infinite loop of reactions.
+    e.preventDefault();
     if (isInExtraLeavingContainer(this)) {
       return true;
     }
-    
+
     var external_url = jQuery(this).attr('href');
     var back_url = window.location.href;
     var alerturl = Drupal.settings.extlink_extra.extlink_alert_url;
