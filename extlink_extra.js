@@ -171,14 +171,16 @@ Drupal.behaviors.extlink_extra = {
           var modal = $('.extlink-extra-leaving', data);
           //And append it
           $( "body" ).append( modal );
+          $('#extlink-extra-leaving-bootstrap-modal').css('-ms-overflow-style', 'none');
+          $('#extlink-extra-leaving-bootstrap-modal').css('overflow-y', 'auto');
           $('#extlink-extra-leaving-bootstrap-modal').modal('show');
           $('#extlink-extra-leaving-bootstrap-modal #modal-go-button').on('click', function(){
             redirect('go', external_url);
           });
         });
       }
-      $('#extlink-extra-leaving-bootstrap-modal').modal('show');
-
+      $('#extlink-extra-leaving-bootstrap-modal').modal('show');      
+      
     }
 
     if (Drupal.settings.extlink_extra.extlink_alert_type == 'page') {
