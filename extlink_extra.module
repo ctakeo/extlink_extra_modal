@@ -54,7 +54,7 @@ function extlink_extra_page_build() {
       'extlink_exceptions' => variable_get('extlink_exceptions', 'no'),
       'extlink_exceptions_list' => $options,
       ),
-    ) ,'setting');
+    ) , 'setting');
 
   // Add an extra CSS file if our 508 fix option is on.
   if (variable_get('extlink_508_fix', 0)) {
@@ -308,7 +308,8 @@ function extlink_extra_form_extlink_admin_settings_alter(&$form, &$form_state) {
       '#title' => 'Go button ' . $i . ' callback function name',
       '#description' => t('Add a function name without the parenthesis to act as a click callback to the buttons. Leave it blank to add no callback.'),
     );
-  } else {
+  }
+  else {
     $form['extlink_add_exception_fieldset']['exception_fieldset' . $i] = array(
       '#type' => 'fieldset',
       '#title' => 'Exception ' . $i,

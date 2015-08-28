@@ -445,10 +445,6 @@ function redirect( whatShouldIDo, whereTo, newTab ) {
   }
 }
 
-function teste() {
-  alert('função chamada pelo click do botão');
-}
-
 function extlink_extra_timer() {
   if (Drupal.settings.extlink_extra.extlink_alert_timer == 0 || Drupal.settings.extlink_extra.extlink_alert_timer == null) {
     return;
