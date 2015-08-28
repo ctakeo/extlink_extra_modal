@@ -120,6 +120,7 @@ Drupal.behaviors.extlink_extra = {
 
   // Our click handler for external links.
   clickReaction: function(e) {
+    $(document).unbind('cbox_complete');
     // Allow the default behavior for link if it's within the warning area.
     // This keeps us from firing an infinite loop of reactions.
     e.preventDefault();
@@ -176,14 +177,6 @@ Drupal.behaviors.extlink_extra = {
               for (var i = 0; i < exceptions_list.length; i++) {
                 if ($(document).has(exceptions_list[i].title).length > 0) {
                   if ($(exceptions_list[i].title).has(e.currentTarget).length > 0) {  //If the user clicked a link included in the exception list
-                    $('.extlink-extra-leaving').html(exceptions_list[i].text + '<div class="colorboxButtonWrapper" style="vertical-align:bottom; color:red; height:100%">'+
-                                                                                  '<div class="colorboxButton-back" style="width:50%; float:left;">'+
-                                                                                    '<button value="Back" style="float:right; margin-right: 10px;" onclick="">Back</button>'+
-                                                                                  '</div>'+
-                                                                                  '<div class="colorboxButton-go" style="width:50%; float:right;">'+
-                                                                                    '<button value="Go" style="float:left; margin-left:10px;" onclick="">Go</button>'+
-                                                                                  '</div>'+
-                                                                                '</div>');
                     //Switch to check if the function passed in the configuration panel really exists
                     switch ($.isFunction(window[exceptions_list[i].cancel_callback])) {
                       case false:
@@ -215,8 +208,16 @@ Drupal.behaviors.extlink_extra = {
                   }
                 }
               }
-            } else {
-              $.colorbox(Drupal.extlink_extra.colorboxSettings);
+            }
+            else {
+                $('.extlink-extra-leaving').append('<div class="colorboxButtonWrapper" style="vertical-align:bottom; color:red; height:100%">'+
+                                                      '<div class="colorboxButton-back" style="width:50%; float:left;">'+
+                                                        '<button value="Back" style="float:right; margin-right: 10px;" onclick="redirect(\'back\',\'' + back_url + '\', ' + newTab + ');">Back</button>'+
+                                                      '</div>'+
+                                                      '<div class="colorboxButton-go" style="width:50%; float:right;">'+
+                                                        '<button value="Go" style="float:left; margin-left:10px;" onclick="redirect(\'go\',\'' + external_url + '\', ' + newTab + ');">Go</button>'+
+                                                      '</div>'+
+                                                    '</div>');
             }
           },
           width: "50%",
