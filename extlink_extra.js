@@ -168,8 +168,6 @@ Drupal.behaviors.extlink_extra = {
           onComplete: function (){
             var extlink_extra = Drupal.settings.extlink_extra;
             var exceptions_list = Drupal.settings.extlink_extra.extlink_exceptions_list;
-            var go_callback = '';
-            var cancel_callback = '';
             var newTab = false;
             if (Drupal.settings.extlink.extTarget != 0) {
               var newTab = true;
@@ -177,7 +175,7 @@ Drupal.behaviors.extlink_extra = {
             if (extlink_extra.extlink_exceptions == 'yes') {
               for (var i = 0; i < exceptions_list.length; i++) {
                 if ($(document).has(exceptions_list[i].title).length > 0) {
-                  if ($(exceptions_list[i].title).has(e.currentTarget).length > 0) {
+                  if ($(exceptions_list[i].title).has(e.currentTarget).length > 0) {  //If the user clicked a link included in the exception list
                     $('.extlink-extra-leaving').html(exceptions_list[i].text + '<div class="colorboxButtonWrapper" style="vertical-align:bottom; color:red; height:100%">'+
                                                                                   '<div class="colorboxButton-back" style="width:50%; float:left;">'+
                                                                                     '<button value="Back" style="float:right; margin-right: 10px;" onclick="">Back</button>'+
@@ -186,6 +184,7 @@ Drupal.behaviors.extlink_extra = {
                                                                                     '<button value="Go" style="float:left; margin-left:10px;" onclick="">Go</button>'+
                                                                                   '</div>'+
                                                                                 '</div>');
+                    //Switch to check if the function passed in the configuration panel really exists
                     switch ($.isFunction(window[exceptions_list[i].cancel_callback])) {
                       case false:
                         break;
@@ -193,6 +192,7 @@ Drupal.behaviors.extlink_extra = {
                         $('.extlink-extra-leaving [value="Back"]').attr('onclick', exceptions_list[i].cancel_callback + '(); redirect(\'back\',\'' + back_url + '\', ' + newTab + ');');
                         break;
                     }
+                    //Same as above
                     switch ($.isFunction(window[exceptions_list[i].go_callback])) {
                       case false:
                         break;
@@ -202,7 +202,8 @@ Drupal.behaviors.extlink_extra = {
                     }
                     break;
                   }
-                  else {
+                  else {  //If the exceptions are active but the user didn't click a link included in the exception link
+                    //Instead of modifying the whole content whe just append the button code
                     $('.extlink-extra-leaving').append('<div class="colorboxButtonWrapper" style="vertical-align:bottom; color:red; height:100%">'+
                                                     '<div class="colorboxButton-back" style="width:50%; float:left;">'+
                                                       '<button value="Back" style="float:right; margin-right: 10px;" onclick="redirect(\'back\',\'' + back_url + '\', ' + newTab + ');">Back</button>'+
@@ -225,7 +226,6 @@ Drupal.behaviors.extlink_extra = {
     }
 
     if (Drupal.settings.extlink_extra.extlink_alert_type == 'bootstrap') {
-     //var currentLinkIsCustom = false;
       //If the template is not appended yet
       if ($('body').has('#extlink-extra-leaving-bootstrap-modal').length == 0) {
         //Make an ajax request
@@ -239,6 +239,7 @@ Drupal.behaviors.extlink_extra = {
             for (var i = 0; i < exceptions_list.length; i++) {
               if ($(document).has(exceptions_list[i].title).length > 0) {
                 if ($(exceptions_list[i].title).has(e.currentTarget).length > 0) {
+                  //Avoid copy and paste
                   changeModalContent(e, external_url);
                 }
                 else {
@@ -252,27 +253,35 @@ Drupal.behaviors.extlink_extra = {
             //Avoid copy and paste
             mustAddHandlers = true;
           }
+          //The must mustAddHandlers works if:
+          // * The exceptions are active but the user did not click a link included in the list
+          // * Exceptions are not active.
+          //Either way the message shown will be the same.
           if (mustAddHandlers) {
             $('#extlink-extra-leaving-bootstrap-modal #modal-go-button').on('click', function() {
-              if (Drupal.settings.extlink.extTarget != 0) {
+              if (Drupal.settings.extlink.extTarget != 0) { //If the user selected to open the links in a new tab
                 redirect('go', external_url, true);
               }
               else {
                 redirect('go', external_url, false);
               }
+              //After the modal closes we remove it from the html. Doing this avoid a lot of copy and paste.
               $('.extlink-extra-leaving').remove();
               $('.modal-backdrop').remove();
             });
 
             $('#extlink-extra-leaving-bootstrap-modal #modal-close-button').on('click', function() {
+              //After the modal closes we remove it from the html. Doing this avoid a lot of copy and paste.
               $('.extlink-extra-leaving').remove();
               $('.modal-backdrop').remove();
             });
           }
+          //Show the modal
           $('#extlink-extra-leaving-bootstrap-modal').modal('show');
         });
       }
       else {
+        //Show the modal
         $('#extlink-extra-leaving-bootstrap-modal').modal('show');
       }
     }
@@ -378,6 +387,7 @@ function changeModalContent (e, external_url) {
         $('#extlink-extra-leaving-bootstrap-modal .modal-body').html(exceptions_list[i].text);
         $('#extlink-extra-leaving-bootstrap-modal #modal-close-button').off();
         $('#extlink-extra-leaving-bootstrap-modal #modal-go-button').off();
+        //Check if the function passed in the configuration panel really exists
         switch($.isFunction(window[exceptions_list[i].go_callback])) {
             case false:
                 $('#extlink-extra-leaving-bootstrap-modal #modal-go-button').on('click', function() {
@@ -387,12 +397,14 @@ function changeModalContent (e, external_url) {
                   else {
                     redirect('go', external_url, false);
                   }
+                  //After the modal closes we remove it from the html. Doing this avoid a lot of copy and paste.
                   $('.extlink-extra-leaving').remove();
                   $('.modal-backdrop').remove();
                 });
                 break;
             case true:
               $('#extlink-extra-leaving-bootstrap-modal #modal-go-button').on('click', function() {
+                //Here we call the custom function
                 window[exceptions_list[i].go_callback]();
                 if (Drupal.settings.extlink.extTarget != 0) {
                   redirect('go', external_url, true)
@@ -400,20 +412,25 @@ function changeModalContent (e, external_url) {
                 else {
                   redirect('go', external_url, false);
                 }
+                //After the modal closes we remove it from the html. Doing this avoid a lot of copy and paste.
                 $('.extlink-extra-leaving').remove();
                 $('.modal-backdrop').remove();
               });
         }
+        //Check if the function passed in the configuration panel really exists
         switch($.isFunction(window[exceptions_list[i].cancel_callback])) {
             case false:
                 $('#extlink-extra-leaving-bootstrap-modal #modal-close-button').on('click', function() {
+                  //After the modal closes we remove it from the html. Doing this avoid a lot of copy and paste.
                   $('.extlink-extra-leaving').remove();
                   $('.modal-backdrop').remove();
                 });
                 break;
             case true:
               $('#extlink-extra-leaving-bootstrap-modal #modal-close-button').on('click', function() {
+                //Here we call the custom function
                 window[exceptions_list[i].cancel_callback]();
+                //After the modal closes we remove it from the html. Doing this avoid a lot of copy and paste.
                 $('.extlink-extra-leaving').remove();
                 $('.modal-backdrop').remove();
               });
@@ -430,6 +447,7 @@ function changeModalContent (e, external_url) {
 // Global var that will be our JS interval.
 var extlink_int;
 
+//This is going to redirect the user to a link
 function redirect( whatShouldIDo, whereTo, newTab ) {
   if (whatShouldIDo == 'go') {
     if (newTab) {
