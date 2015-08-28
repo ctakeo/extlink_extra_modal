@@ -131,9 +131,10 @@ function _extlink_extra_template(&$vars) {
   $vars['timer'] = extlink_extra_timer_markup();
 }
 
-function template_preprocess_extlink_extra_leaving_bootstrap_modal(&$vars) {
+function template_preprocess_extlink_extra_leaving_bootstrap_modal(&$vars) {  
   _extlink_extra_template($vars);
 }
+
 
 /**
  * Page callback function for '/now-leaving-bs'
