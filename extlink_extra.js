@@ -387,9 +387,9 @@ function changeModalContent (e, external_url) {
                   else {
                     redirect('go', external_url, false);
                   }
+                  $('.extlink-extra-leaving').remove();
+                  $('.modal-backdrop').remove();
                 });
-                $('.extlink-extra-leaving').remove();
-                $('.modal-backdrop').remove();
                 break;
             case true:
               $('#extlink-extra-leaving-bootstrap-modal #modal-go-button').on('click', function() {
