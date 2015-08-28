@@ -177,6 +177,8 @@ Drupal.behaviors.extlink_extra = {
               for (var i = 0; i < exceptions_list.length; i++) {
                 if ($(document).has(exceptions_list[i].title).length > 0) {
                   if ($(exceptions_list[i].title).has(e.currentTarget).length > 0) {  //If the user clicked a link included in the exception list
+                    $('.extlink-extra-leaving').html(exceptions_list[i].text);
+                    appendButtons(back_url, external_url, newTab);
                     //Switch to check if the function passed in the configuration panel really exists
                     switch ($.isFunction(window[exceptions_list[i].cancel_callback])) {
                       case false:
@@ -188,6 +190,7 @@ Drupal.behaviors.extlink_extra = {
                     //Same as above
                     switch ($.isFunction(window[exceptions_list[i].go_callback])) {
                       case false:
+                        $('.extlink-extra-leaving [value="Go"]').attr('onclick', 'redirect(\'go\',\'' + external_url + '\', ' + newTab + ');');
                         break;
                       case true:
                         $('.extlink-extra-leaving [value="Go"]').attr('onclick', exceptions_list[i].go_callback+'(); redirect(\'go\',\'' + external_url + '\', ' + newTab + ');');
@@ -197,27 +200,13 @@ Drupal.behaviors.extlink_extra = {
                   }
                   else {  //If the exceptions are active but the user didn't click a link included in the exception link
                     //Instead of modifying the whole content whe just append the button code
-                    $('.extlink-extra-leaving').append('<div class="colorboxButtonWrapper" style="vertical-align:bottom; color:red; height:100%">'+
-                                                    '<div class="colorboxButton-back" style="width:50%; float:left;">'+
-                                                      '<button value="Back" style="float:right; margin-right: 10px;" onclick="redirect(\'back\',\'' + back_url + '\', ' + newTab + ');">Back</button>'+
-                                                    '</div>'+
-                                                    '<div class="colorboxButton-go" style="width:50%; float:right;">'+
-                                                      '<button value="Go" style="float:left; margin-left:10px;" onclick="redirect(\'go\',\'' + external_url + '\', ' + newTab + ');">Go</button>'+
-                                                    '</div>'+
-                                                  '</div>');
+                    appendButtons(back_url, external_url, newTab);
                   }
                 }
               }
             }
             else {
-                $('.extlink-extra-leaving').append('<div class="colorboxButtonWrapper" style="vertical-align:bottom; color:red; height:100%">'+
-                                                      '<div class="colorboxButton-back" style="width:50%; float:left;">'+
-                                                        '<button value="Back" style="float:right; margin-right: 10px;" onclick="redirect(\'back\',\'' + back_url + '\', ' + newTab + ');">Back</button>'+
-                                                      '</div>'+
-                                                      '<div class="colorboxButton-go" style="width:50%; float:right;">'+
-                                                        '<button value="Go" style="float:left; margin-left:10px;" onclick="redirect(\'go\',\'' + external_url + '\', ' + newTab + ');">Go</button>'+
-                                                      '</div>'+
-                                                    '</div>');
+                appendButtons(back_url, external_url, newTab);
             }
           },
           width: "50%",
@@ -378,6 +367,17 @@ Drupal.behaviors.extlink_extra = {
       });
     }
   }
+}
+
+function appendButtons(back_url, external_url, newTab) {
+  $('.extlink-extra-leaving').append('<div class="colorboxButtonWrapper" style="vertical-align:bottom; color:red; height:100%">'+
+                                      '<div class="colorboxButton-back" style="width:50%; float:left;">'+
+                                        '<button value="Back" class=".btn .btn-default" style="float:right; margin-right: 10px;" onclick="redirect(\'back\',\'' + back_url + '\', ' + newTab + ');">Back</button>'+
+                                      '</div>'+
+                                      '<div class="colorboxButton-go" style="width:50%; float:right;">'+
+                                        '<button value="Go" class=".btn .btn-default" style="float:left; margin-left:10px;" onclick="redirect(\'go\',\'' + external_url + '\', ' + newTab + ');">Go</button>'+
+                                      '</div>'+
+                                    '</div>');
 }
 
 function changeModalContent (e, external_url) {
