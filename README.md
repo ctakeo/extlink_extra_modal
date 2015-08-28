@@ -1,3 +1,4 @@
+# extlink_extra_modal
 This is a modified version of the External Links Extra and External Links. Custom messages for custom selectors have been implemented.
 
 // COLORBOX MODULE IS NEEDED!!!!!! //
