@@ -19,7 +19,7 @@ Drupal.settings.extlink_extra.colorboxSettings = Drupal.settings.extlink_extra.c
   },
   onClosed: extlink_stop_timer
 };
-  
+
 Drupal.behaviors.extlink_extra = {
   // Function mostly duplicated from extlink.js.
   // Returns an array of DOM elements of all external links.
@@ -115,7 +115,6 @@ Drupal.behaviors.extlink_extra = {
         return false;
       }
     });
-
     return external_links;
   },
 
@@ -123,13 +122,16 @@ Drupal.behaviors.extlink_extra = {
   clickReaction: function(e) {
     // Allow the default behavior for link if it's within the warning area.
     // This keeps us from firing an infinite loop of reactions.
+    e.preventDefault();
+    e.stopPropagation();
     if (isInExtraLeavingContainer(this)) {
       return true;
     }
-    
+
     var external_url = jQuery(this).attr('href');
     var back_url = window.location.href;
     var alerturl = Drupal.settings.extlink_extra.extlink_alert_url;
+    var exceptions_list = Drupal.settings.extlink_extra.extlink_exceptions_list
 
     // "Don't warn" pattern matching.
     var extlink_exclude_warning = false;
@@ -157,21 +159,122 @@ Drupal.behaviors.extlink_extra = {
     $.cookie("back_url", back_url, { path: '/' });
 
     if (Drupal.settings.extlink_extra.extlink_alert_type == 'colorbox') {
-      jQuery.colorbox(Drupal.settings.extlink_extra.colorboxSettings);
+      $.colorbox({
+          className: "extlink-extra-leaving-colorbox",
+          height: "50%",
+          href: Drupal.settings.extlink_extra.extlink_alert_url+ " .extlink-extra-leaving",
+          initialHeight: "50%",
+          initialWidth: "50%",
+          onComplete: function (){
+            var extlink_extra = Drupal.settings.extlink_extra;
+            var exceptions_list = Drupal.settings.extlink_extra.extlink_exceptions_list;
+            var go_callback = '';
+            var cancel_callback = '';
+            var newTab = false;
+            if (Drupal.settings.extlink.extTarget != 0) {
+              var newTab = true;
+            }
+            if (extlink_extra.extlink_exceptions == 'yes') {
+              for (var i = 0; i < exceptions_list.length; i++) {
+                if ($(document).has(exceptions_list[i].title).length > 0) {
+                  if ($(exceptions_list[i].title).has(e.currentTarget).length > 0) {
+                    $('.extlink-extra-leaving').html(exceptions_list[i].text + '<div class="colorboxButtonWrapper" style="vertical-align:bottom; color:red; height:100%">'+
+                                                                                  '<div class="colorboxButton-back" style="width:50%; float:left;">'+
+                                                                                    '<button value="Back" style="float:right; margin-right: 10px;" onclick="">Back</button>'+
+                                                                                  '</div>'+
+                                                                                  '<div class="colorboxButton-go" style="width:50%; float:right;">'+
+                                                                                    '<button value="Go" style="float:left; margin-left:10px;" onclick="">Go</button>'+
+                                                                                  '</div>'+
+                                                                                '</div>');
+                    switch ($.isFunction(window[exceptions_list[i].cancel_callback])) {
+                      case false:
+                        break;
+                      case true:
+                        $('.extlink-extra-leaving [value="Back"]').attr('onclick', exceptions_list[i].cancel_callback + '(); redirect(\'back\',\'' + back_url + '\', ' + newTab + ');');
+                        break;
+                    }
+                    switch ($.isFunction(window[exceptions_list[i].go_callback])) {
+                      case false:
+                        break;
+                      case true:
+                        $('.extlink-extra-leaving [value="Go"]').attr('onclick', exceptions_list[i].go_callback+'(); redirect(\'go\',\'' + external_url + '\', ' + newTab + ');');
+                        break;
+                    }
+                    break;
+                  }
+                  else {
+                    $('.extlink-extra-leaving').append('<div class="colorboxButtonWrapper" style="vertical-align:bottom; color:red; height:100%">'+
+                                                    '<div class="colorboxButton-back" style="width:50%; float:left;">'+
+                                                      '<button value="Back" style="float:right; margin-right: 10px;" onclick="redirect(\'back\',\'' + back_url + '\', ' + newTab + ');">Back</button>'+
+                                                    '</div>'+
+                                                    '<div class="colorboxButton-go" style="width:50%; float:right;">'+
+                                                      '<button value="Go" style="float:left; margin-left:10px;" onclick="redirect(\'go\',\'' + external_url + '\', ' + newTab + ');">Go</button>'+
+                                                    '</div>'+
+                                                  '</div>');
+                  }
+                }
+              }
+            } else {
+              $.colorbox(Drupal.extlink_extra.colorboxSettings);
+            }
+          },
+          width: "50%",
+        });
+
       return false;
     }
 
     if (Drupal.settings.extlink_extra.extlink_alert_type == 'bootstrap') {
+     //var currentLinkIsCustom = false;
       //If the template is not appended yet
-      if ($('body').has('#extlink-extra-leaving-bootstrap-modal').length == 0){
-        //Append it
-        $('body').append(Drupal.settings.extlink_extra.extlink_alert_text_modal);
+      if ($('body').has('#extlink-extra-leaving-bootstrap-modal').length == 0) {
+        //Make an ajax request
+        $.get( Drupal.settings.basePath+"now-leaving-bs", function( data ) {
+          var mustAddHandlers = false;
+          var modal = $('.extlink-extra-leaving', data);
+          $( "body" ).append( modal );
+          $('#extlink-extra-leaving-bootstrap-modal').css('-ms-overflow-style', 'none');
+          $('#extlink-extra-leaving-bootstrap-modal').css('overflow-y', 'auto');
+          if (Drupal.settings.extlink_extra.extlink_exceptions == 'yes') {
+            for (var i = 0; i < exceptions_list.length; i++) {
+              if ($(document).has(exceptions_list[i].title).length > 0) {
+                if ($(exceptions_list[i].title).has(e.currentTarget).length > 0) {
+                  changeModalContent(e, external_url);
+                }
+                else {
+                  //Avoid copy and paste
+                  mustAddHandlers = true;
+                }
+              }
+            }
+          }
+          else {
+            //Avoid copy and paste
+            mustAddHandlers = true;
+          }
+          if (mustAddHandlers) {
+            $('#extlink-extra-leaving-bootstrap-modal #modal-go-button').on('click', function() {
+              if (Drupal.settings.extlink.extTarget != 0) {
+                redirect('go', external_url, true);
+              }
+              else {
+                redirect('go', external_url, false);
+              }
+              $('.extlink-extra-leaving').remove();
+              $('.modal-backdrop').remove();
+            });
+
+            $('#extlink-extra-leaving-bootstrap-modal #modal-close-button').on('click', function() {
+              $('.extlink-extra-leaving').remove();
+              $('.modal-backdrop').remove();
+            });
+          }
+          $('#extlink-extra-leaving-bootstrap-modal').modal('show');
+        });
       }
-      //Shows the modal and add the click handler
-      $('#extlink-extra-leaving-bootstrap-modal').modal('show');
-      $('#extlink-extra-leaving-bootstrap-modal #modal-go-button').on('click', function(){
-        redirect('go', external_url);
-      });
+      else {
+        $('#extlink-extra-leaving-bootstrap-modal').modal('show');
+      }
     }
 
     if (Drupal.settings.extlink_extra.extlink_alert_type == 'page') {
@@ -184,12 +287,12 @@ Drupal.behaviors.extlink_extra = {
   attach: function(context){
     // Build an array of external_links exactly like extlink does.
     var external_links = this.extlinkAttach(context);
-    
+
     // Unbind the click handlers added by extlink and replace with our own
     // This whole section of code that does the finding, unbinding, and rebinding
     // could be made a lot less redundant and more efficient if this issue could be resolved: http://drupal.org/node/1715520
     $(external_links).unbind('click').not('.ext-override, .extlink-extra-leaving a').click(this.clickReaction);
-    
+
     $(document).ready(function() {
       if (Drupal.settings.extlink_extra.extlink_url_override == 1) {
         if (Drupal.settings.extlink_extra.extlink_url_params.external_url) {
@@ -200,7 +303,7 @@ Drupal.behaviors.extlink_extra = {
         }
       }
     });
-    
+
     // Dynamically replace hrefs of back and external links on page load. This
     // is to compensate for aggressive caching situations where the now-leaving
     // is returning cached results.
@@ -263,21 +366,87 @@ Drupal.behaviors.extlink_extra = {
         //Add the data-toggle attribute. Without this the page will not wait until the user clicks go.
         $(this).attr('data-toggle', 'modal');
       });
-
     }
   }
 }
+
+function changeModalContent (e, external_url) {
+  var exceptions_list = Drupal.settings.extlink_extra.extlink_exceptions_list;
+  for (var i = 0; i < exceptions_list.length; i++) {
+    if ($(document).has(exceptions_list[i].title).length > 0) {
+      if ($(exceptions_list[i].title).has(e.currentTarget).length > 0) {
+        $('#extlink-extra-leaving-bootstrap-modal .modal-body').html(exceptions_list[i].text);
+        $('#extlink-extra-leaving-bootstrap-modal #modal-close-button').off();
+        $('#extlink-extra-leaving-bootstrap-modal #modal-go-button').off();
+        switch($.isFunction(window[exceptions_list[i].go_callback])) {
+            case false:
+                $('#extlink-extra-leaving-bootstrap-modal #modal-go-button').on('click', function() {
+                  if (Drupal.settings.extlink.extTarget != 0) {
+                    redirect('go', external_url, true);
+                  }
+                  else {
+                    redirect('go', external_url, false);
+                  }
+                });
+                $('.extlink-extra-leaving').remove();
+                $('.modal-backdrop').remove();
+                break;
+            case true:
+              $('#extlink-extra-leaving-bootstrap-modal #modal-go-button').on('click', function() {
+                window[exceptions_list[i].go_callback]();
+                if (Drupal.settings.extlink.extTarget != 0) {
+                  redirect('go', external_url, true)
+                }
+                else {
+                  redirect('go', external_url, false);
+                }
+                $('.extlink-extra-leaving').remove();
+                $('.modal-backdrop').remove();
+              });
+        }
+        switch($.isFunction(window[exceptions_list[i].cancel_callback])) {
+            case false:
+                $('#extlink-extra-leaving-bootstrap-modal #modal-close-button').on('click', function() {
+                  $('.extlink-extra-leaving').remove();
+                  $('.modal-backdrop').remove();
+                });
+                break;
+            case true:
+              $('#extlink-extra-leaving-bootstrap-modal #modal-close-button').on('click', function() {
+                window[exceptions_list[i].cancel_callback]();
+                $('.extlink-extra-leaving').remove();
+                $('.modal-backdrop').remove();
+              });
+        }
+        break;
+      }
+    }
+  }
+}
+
 
 })(jQuery);
 
 // Global var that will be our JS interval.
 var extlink_int;
 
-function redirect( whatShouldIDo, whereTo ) {
-  if (whatShouldIDo == 'go')
-    window.location = whereTo;
-  else
+function redirect( whatShouldIDo, whereTo, newTab ) {
+  if (whatShouldIDo == 'go') {
+    if (newTab) {
+      window.open(whereTo, '_blank');
+    }
+    else {
+      window.location = whereTo;
+    }
     jQuery.colorbox.close();
+  }
+  else {
+    jQuery.colorbox.close();
+  }
+}
+
+function teste() {
+  alert('função chamada pelo click do botão');
 }
 
 function extlink_extra_timer() {

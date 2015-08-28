@@ -1,3 +1,25 @@
 .alert-text-wysiwyg-disabled .text-format-wrapper label {
   float: none;
 }
+
+.colorboxButton {
+  width: 50%;
+  float: right;
+}
+
+.colorboxButton [value="Back"] {
+  float: right;
+  margin-right: 10px;
+}
+
+.colorboxButton [value="Go"] {
+  float: left;
+  margin-left: 10px;
+}
+
+#colorBoxButtonWrapper {
+  vertical-align: bottom;
+  color: red;
+  height: 100%;
+  width: 100%;
+}

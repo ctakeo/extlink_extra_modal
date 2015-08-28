@@ -12,22 +12,35 @@ function extlink_extra_page_build() {
   $path = drupal_get_path('module', 'extlink_extra');
   // Add our JS in the footer so it will execute after extlink.js.
   drupal_add_js($path . '/extlink_extra.js', array('every_page' => TRUE, 'scope' => 'footer'));
-  
+
   // If we're using colorbox, we'll add js=1 to the url string of the alert page - this causes a premature exit
   // which saves execution time and doesn't render the rest of the page.
   $aQuery = array();
   if (variable_get('extlink_alert_type', 'colorbox') == 'colorbox') {
     $aQuery = array('js' => 1);
   }
-  
+
   // Get url params if they exist.
   $url_params['external_url'] = isset($_GET['external_url']) ? valid_url($_GET['external_url'], $absolute = TRUE) ? drupal_strip_dangerous_protocols($_GET['external_url']) : NULL : NULL;
   $url_params['back_url'] = isset($_GET['back_url']) ? valid_url($_GET['back_url'], $absolute = TRUE) ? drupal_strip_dangerous_protocols($_GET['back_url']) : NULL : NULL;
 
+  $exceptions_array = unserialize(variable_get('exception_list', NULL));
+  $options = array();
+  if ($exceptions_array != NULL) {
+    foreach ( $exceptions_array as $exception ) {
+      $options[] = array('title' => $exception->title,
+                          'text' => $exception->text,
+                          'cancel_callback' => $exception->cancel_callback,
+                          'go_callback' => $exception->go_callback,
+                        );
+    }
+  }
+
+
   // Expose settings from our settings page to javascript.
   //The js information passed to the .js file varies depending on wheter the used select bootstrap modal or not.
   //Instantiating the variables before avoid a lot of unecessary code.
-  $js_variables = array(
+  drupal_add_js(array(
     'extlink_extra' => array(
       'extlink_alert_type' => variable_get('extlink_alert_type', ''),
       'extlink_alert_timer' => variable_get('extlink_alert_timer', 0),
@@ -38,20 +51,11 @@ function extlink_extra_page_build() {
       'extlink_508_text' => variable_get('extlink_508_text', EXTLINK_EXTRA_508_TEXT),
       'extlink_url_override' => variable_get('extlink_url_override', 0),
       'extlink_url_params' => $url_params,
+      'extlink_exceptions' => variable_get('extlink_exceptions', 'no'),
+      'extlink_exceptions_list' => $options,
       ),
-    ); 
+    ) ,'setting');
 
-  //If the way to show the message is the bootstrap modal
-  if (variable_get('extlink_alert_type', '') == 'bootstrap') {
-    //We get the content of the custom theme
-    $leaving_modal_array = array('extlink_alert_text_modal' => theme('extlink_extra_leaving_bootstrap_modal'));    
-    //And add it to the array of variables
-    $temp_js_variables = array('extlink_extra' => array_merge($js_variables['extlink_extra'], $leaving_modal_array));
-    drupal_add_js($temp_js_variables, 'setting');
-  }
-  else {
-    drupal_add_js($js_variables, 'setting');
-  }
   // Add an extra CSS file if our 508 fix option is on.
   if (variable_get('extlink_508_fix', 0)) {
     drupal_add_css($path . '/extlink_extra.508.css');
@@ -60,7 +64,7 @@ function extlink_extra_page_build() {
   if (variable_get('extlink_508_fix', 0)) {
     drupal_add_css($path . '/extlink_extra.508.css');
   }
-  
+
   // extlink_extra relies on the jquery.cookie for passing around information.
   // This also helps us overcome aggressive caching, since the client side code
   // has access to information from the last page load.
@@ -74,6 +78,13 @@ function extlink_extra_menu() {
   $items['now-leaving'] = array(
     'title' => 'You are about to leave this site', // This title will get replaced by tokens.
     'page callback' => 'extlink_extra_leaving_page',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['now-leaving-bs'] = array(
+    'title' => 'You are about to leave this site', // This title will get replaced by tokens.
+    'page callback' => 'extlink_extra_leaving_page_bs',
     'access arguments' => array('access content'),
     'type' => MENU_CALLBACK,
   );
@@ -103,6 +114,7 @@ function template_preprocess_extlink_extra_leaving(&$vars) {
 
 //Since the code to pass the variables to the templates are the same, I just create a method to be called by the preprocess hook
 function _extlink_extra_template(&$vars) {
+
   $eat_default = variable_get('extlink_alert_text', array('value' => 'This link will take you to an external web site. We are not responsible for their content.', 'format' => NULL));
   $vars['external_url'] = variable_get('extlink_cache_fix', 0) ? 'external-url-placeholder' : $_COOKIE['external_url'] ;
   $vars['back_url'] = variable_get('extlink_cache_fix', 0) ? 'back-url-placeholder' : $_COOKIE['back_url'];
@@ -119,8 +131,16 @@ function _extlink_extra_template(&$vars) {
   $vars['timer'] = extlink_extra_timer_markup();
 }
 
-function template_preprocess_extlink_extra_leaving_bootstrap_modal(&$vars) {  
+function template_preprocess_extlink_extra_leaving_bootstrap_modal(&$vars) {
   _extlink_extra_template($vars);
+}
+
+/**
+ * Page callback function for '/now-leaving-bs'
+ */
+function extlink_extra_leaving_page_bs() {
+  $output = theme('extlink_extra_leaving_bootstrap_modal');
+  return $output;
 }
 
 /**
@@ -128,7 +148,7 @@ function template_preprocess_extlink_extra_leaving_bootstrap_modal(&$vars) {
  */
 function extlink_extra_leaving_page() {
   $output = theme('extlink_extra_leaving');
-  
+
   // We might not need to have drupal render all the rest of the html if this is a javascript request.
   if (isset($_REQUEST['js'])) {
     print $output;
@@ -141,6 +161,25 @@ function extlink_extra_leaving_page() {
  * Implementation of hook_form_alter().
  */
 function extlink_extra_form_alter(&$form, &$form_state, $form_id) {}
+
+function extlink_extra_exception_delete($form, &$form_state) {
+  $exceptions_array = unserialize(variable_get('exception_list', NULL));
+  //This line will get the button pressed by taking the last character of it's value so we know which exception to delete.
+  //The warning generated by line following line have been supressed.
+  @$exception_pressed = $form_state['values']['op']{strlen($form_state['values']['op'])-1};
+  //If NULL don't check. (avoid errors)
+  if ($exceptions_array != NULL) {
+    //Using a foreach like this will avoid undefined indexes errors.
+    foreach ( $exceptions_array as $key => &$i ) {
+      if ($key == $exception_pressed)
+        unset($exceptions_array[$exception_pressed]);   //Remove the exception from the list if the user pressed the delete button.
+      if (strlen($i->title) == 0) {
+        unset($exceptions_array[$key]);                 //Remove exceptions with blank Exceptions Selector fields.
+      }
+    }
+    variable_set('exception_list', serialize($exceptions_array)); //Save the exceptions to the database.
+  }
+}
 
 /**
  * Implementation of hook_form_FORM_ID_alter().
@@ -169,8 +208,152 @@ function extlink_extra_form_extlink_admin_settings_alter(&$form, &$form_state) {
   if (module_exists('colorbox')) {
     $form['extlink_alert_type']['#options']['colorbox'] = t('Warn using a modal dialog (colorbox)');
   }
-  
-  // Make a fieldset to put our new stuff in.
+
+  $exceptions_array = unserialize(variable_get('exception_list', NULL));
+
+  //Choose wheter you want or not the possibility of creating custom messages for custom selectors.
+  $form['extlink_exceptions'] = array(
+    '#type' => 'select',
+    '#title' => t('Activate custom messages for external links.'),
+    '#default_value' => variable_get('extlink_exceptions', 'no'),
+    '#options' => array(
+      'yes' => t('Yes'),
+      'no' => t('No'),
+    ),
+  );
+
+  //Create the first fieldset
+  $form['extlink_add_exception_fieldset'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Add new warning texts',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#states' => array(
+      'invisible' => array(
+        ':input[name=extlink_exceptions]' => array(
+          'value' => 'no',
+        ),
+      ),
+    ),
+  );
+
+  /*Dinamycally creates the selector and message fields*/
+  $i = 0;
+  //If there's no exceptions created yet don't check. (avoid errors)
+  if ($exceptions_array != NULL) {
+
+    foreach ( $exceptions_array as $exception ) {
+      $form['extlink_add_exception_fieldset']['exception_fieldset' . $i] = array(
+        '#type' => 'fieldset',
+        '#title' => 'Exception ' . $i,
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
+      );
+      $form['extlink_add_exception_fieldset']['exception_fieldset' . $i]['exception_id' . $i] = array(
+        '#type' => 'textfield',
+        '#default_value' => $exception->title,
+        '#title' => 'Exception ' . $i . ' selector',
+      );
+      $form['extlink_add_exception_fieldset']['exception_fieldset' . $i]['exception_text' . $i] = array(
+        '#type' => 'textarea',
+        '#title' => 'Exception ' . $i . ' Custom message',
+        '#default_value' => $exception->text,
+        '#rows' => 16,
+      );
+      $form['extlink_add_exception_fieldset']['exception_fieldset' . $i]['cancel_callback' . $i] = array(
+      '#type' => 'textfield',
+      '#default_value' => $exception->cancel_callback,
+      '#title' => 'Cancel button ' . $i . ' callback function name',
+      );
+      $form['extlink_add_exception_fieldset']['exception_fieldset' . $i]['go_callback' . $i] = array(
+      '#type' => 'textfield',
+      '#default_value' => $exception->go_callback,
+      '#title' => 'Go button ' . $i . ' callback function name',
+      '#description' => t('Add a function name without the parenthesis to act as a click callback to the buttons. Leave it blank to add no callback.'),
+      );
+      $form['extlink_add_exception_fieldset']['exception_fieldset' . $i]['delete_button' . $i] = array(
+        '#type' => 'submit',
+        '#title' => 'Text',
+        '#description' => 'Delete this exception',
+        '#value' => 'Delete exception ' . $i,
+        '#submit' => array('extlink_extra_exception_delete'),
+      );
+      $i++;
+    }
+    $form['extlink_add_exception_fieldset']['exception_fieldset' . $i] = array(
+      '#type' => 'fieldset',
+      '#title' => 'Exception ' . $i,
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+    );
+    $form['extlink_add_exception_fieldset']['exception_fieldset' . $i]['exception_id' . $i] = array(
+      '#type' => 'textfield',
+      '#default_value' => '',
+      '#title' => 'Exception ' . $i . ' selector',
+    );
+    $form['extlink_add_exception_fieldset']['exception_fieldset' . $i]['exception_text' . $i] = array(
+      '#type' => 'textarea',
+      '#title' => 'Exception ' . $i . ' Custom message',
+      '#default_value' => '',
+      '#rows' => 16,
+    );
+    $form['extlink_add_exception_fieldset']['exception_fieldset' . $i]['cancel_callback' . $i] = array(
+      '#type' => 'textfield',
+      '#default_value' => '',
+      '#title' => 'Cancel button ' . $i . ' callback function name',
+      );
+      $form['extlink_add_exception_fieldset']['exception_fieldset' . $i]['go_callback' . $i] = array(
+      '#type' => 'textfield',
+      '#default_value' => '',
+      '#title' => 'Go button ' . $i . ' callback function name',
+      '#description' => t('Add a function name without the parenthesis to act as a click callback to the buttons. Leave it blank to add no callback.'),
+    );
+  } else {
+    $form['extlink_add_exception_fieldset']['exception_fieldset' . $i] = array(
+      '#type' => 'fieldset',
+      '#title' => 'Exception ' . $i,
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+    );
+    $form['extlink_add_exception_fieldset']['exception_fieldset' . $i]['exception_id' . $i] = array(
+      '#type' => 'textfield',
+      '#default_value' => '',
+      '#title' => 'Exception ' . $i . ' selector',
+    );
+    $form['extlink_add_exception_fieldset']['exception_fieldset' . $i]['exception_text' . $i] = array(
+      '#type' => 'textarea',
+      '#title' => 'Exception ' . $i . ' Custom message',
+      '#default_value' => '',
+      '#rows' => 16,
+    );
+    $form['extlink_add_exception_fieldset']['exception_fieldset' . $i]['cancel_callback' . $i] = array(
+      '#type' => 'textfield',
+      '#default_value' => '',
+      '#title' => 'Cancel button ' . $i . ' callback function name',
+      );
+      $form['extlink_add_exception_fieldset']['exception_fieldset' . $i]['go_callback' . $i] = array(
+      '#type' => 'textfield',
+      '#default_value' => '',
+      '#title' => 'Go button ' . $i . ' callback function name',
+      '#description' => t('Add a function name without the parenthesis to act as a click callback to the buttons. Leave it blank to add no callback.'),
+    );
+  }
+  //The delete handler will always be executed but will only delete a registry under certain circunstances (i.e.: click the delete exception button or saving with the Exception X selector field blank)
+  $form['#submit'][] = 'extlink_extra_exception_delete';
+  $form['#validate'][] = 'extlink_extra_form_validate';
+  /*Dinamycally creates the selector and message fields*/
+
+  //Add the Save Exceptions button
+  $form['extlink_add_exception_fieldset']['submit_button'] = array(
+    '#type' => 'submit',
+    '#title' => 'Text',
+    '#description' => 'adasd',
+    '#value' => 'Save Exceptions',
+  );
+  /*Coded by Shigaki*/
+
+
+
   $form['extlink_alert_text_fieldset'] = array(
     '#type' => 'fieldset',
     '#title' => 'Warning Text',
@@ -228,7 +411,7 @@ function extlink_extra_form_extlink_admin_settings_alter(&$form, &$form_state) {
 
   // Get rid of the old field since we moved it into the fieldset.
   unset($form['extlink_alert_text']);
-  
+
   // Remove the 'Display pop-up warnings' checkbox that extlink.module provides.
   $form['extlink_alert']['#access'] = FALSE;
 
@@ -256,7 +439,7 @@ function extlink_extra_form_extlink_admin_settings_alter(&$form, &$form_state) {
      See extlink-extra-leaving-tpl.example.php for an example.'),
     '#default_value' => variable_get('extlink_cache_fix', 0),
   );
-  
+
   $form['extlink_508'] = array(
     '#type' => 'fieldset',
     '#title' => 'Section 508 Accessibility',
@@ -280,12 +463,12 @@ function extlink_extra_form_extlink_admin_settings_alter(&$form, &$form_state) {
       ),
     ),
   );
-  
+
   $form['extlink_url_override'] = array(
     '#type' => 'checkbox',
     '#title' => t('Allow url parameters to set destination and back links'),
     '#description' => t('If you have advertisements and require a bumper for leaving the site, some advertisers use url parameters to set the destination.
-     Select this checkbox to allow url parameters to set the destination and back links. Links must be prepended with http://.<br/> 
+     Select this checkbox to allow url parameters to set the destination and back links. Links must be prepended with http://.<br/>
      Eg. example.com/now-leaving?external_url=http://newurl.com&back_url=http://example.com/old-path.'),
     '#default_value' => variable_get('extlink_url_override', 0),
   );
@@ -374,4 +557,31 @@ function extlink_extra_tokens($type, $tokens, array $data = array(), array $opti
  */
 function extlink_extra_timer_markup() {
   return '<div class="automatic-redirect-countdown"></div>';
+}
+
+
+function extlink_extra_form_validate($form, &$form_state) {
+  /*Coded by Shigaki*/
+
+  /*Not sure if this could be added to the validate method in the extra module.*/
+  /*The warnings generated by the while have been supressed.*/
+
+  //Validate the values before saving in the database
+  $exceptions_array = array();
+  $i = 0;
+  @$title = $form['extlink_add_exception_fieldset']['exception_fieldset' . $i]['exception_id' . $i];
+  //This will check all the exceptions fields and see if it's NULL. If it's null then the exception of number $i has not been added yet.
+  while ($title != NULL) {
+    //Add the exception to an array so I can save to the database in one place.
+    $excep = new exception();
+    @$excep->cancel_callback = $form['extlink_add_exception_fieldset']['exception_fieldset' . $i]['cancel_callback' . $i]['#value'];
+    @$excep->go_callback = $form['extlink_add_exception_fieldset']['exception_fieldset' . $i]['go_callback' . $i]['#value'];
+    @$excep->title = $form['extlink_add_exception_fieldset']['exception_fieldset' . $i]['exception_id' . $i]['#value'];
+    @$excep->text = $form['extlink_add_exception_fieldset']['exception_fieldset' . $i]['exception_text' . $i]['#value'];
+    $exceptions_array[] = $excep;
+    $i++;
+    @$title = $form['extlink_add_exception_fieldset']['exception_fieldset' . $i]['exception_id' . $i];
+  }
+  variable_set('exception_list', serialize($exceptions_array));
+  /*Coded by Shigaki*/
 }
