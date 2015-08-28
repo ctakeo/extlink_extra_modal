@@ -372,10 +372,10 @@ Drupal.behaviors.extlink_extra = {
 function appendButtons(back_url, external_url, newTab) {
   $('.extlink-extra-leaving').append('<div class="colorboxButtonWrapper" style="vertical-align:bottom; color:red; height:100%">'+
                                       '<div class="colorboxButton-back" style="width:50%; float:left;">'+
-                                        '<button value="Back" class=".btn .btn-default" style="float:right; margin-right: 10px;" onclick="redirect(\'back\',\'' + back_url + '\', ' + newTab + ');">Back</button>'+
+                                        '<button value="Back" class="btn btn-default" style="float:right; margin-right: 10px;" onclick="redirect(\'back\',\'' + back_url + '\', ' + newTab + ');">Back</button>'+
                                       '</div>'+
                                       '<div class="colorboxButton-go" style="width:50%; float:right;">'+
-                                        '<button value="Go" class=".btn .btn-default" style="float:left; margin-left:10px;" onclick="redirect(\'go\',\'' + external_url + '\', ' + newTab + ');">Go</button>'+
+                                        '<button value="Go" class="btn btn-default" style="float:left; margin-left:10px;" onclick="redirect(\'go\',\'' + external_url + '\', ' + newTab + ');">Go</button>'+
                                       '</div>'+
                                     '</div>');
 }
