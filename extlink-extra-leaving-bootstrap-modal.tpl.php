@@ -6,17 +6,17 @@ Don't remove any CSS classes if you want them to function correctly, but add any
 */
 ?>
 <div class="extlink-extra-leaving">
-	<div class="modal fade" id="extlink-extra-leaving-bootstrap-modal">
+  <div class="modal fade" id="extlink-extra-leaving-bootstrap-modal">
     <div class="modal-dialog">
       <div class="modal-content">
-      	<div class="modal-header">
+        <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
           <h4 class="modal-title">You're leaving the site</h4>
-       </div><div class="container"></div>
-       <div class="modal-body">
-       		<?php
-				  	print $alert_text;
-				  ?>
+        </div><div class="container"></div>
+        <div class="modal-body">
+          <?php
+            print $alert_text;
+          ?>
         </div>
         <div class="modal-footer">
           <button data-dismiss="modal" id="modal-close-button" class="btn">Close</button>

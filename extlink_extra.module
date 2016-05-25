@@ -79,6 +79,7 @@ function extlink_extra_menu() {
     'title' => 'You are about to leave this site', // This title will get replaced by tokens.
     'page callback' => 'extlink_extra_leaving_page',
     'access arguments' => array('access content'),
+    'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
 
@@ -86,6 +87,7 @@ function extlink_extra_menu() {
     'title' => 'You are about to leave this site', // This title will get replaced by tokens.
     'page callback' => 'extlink_extra_leaving_page_bs',
     'access arguments' => array('access content'),
+    'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
 
