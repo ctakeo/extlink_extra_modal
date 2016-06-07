@@ -206,7 +206,7 @@ Drupal.behaviors.extlink_extra = {
               }
             }
             else {
-                appendButtons(back_url, external_url, newTab);
+              appendButtons(back_url, external_url, newTab);
             }
           },
           width: "50%",
@@ -283,6 +283,21 @@ Drupal.behaviors.extlink_extra = {
           $('.extlink-extra-leaving').remove();
           $('.modal-backdrop').remove();
         });
+        if (Drupal.settings.extlink_extra.extlink_exceptions == 'yes') {
+          for (var i = 0; i < exceptions_list.length; i++) {
+            if ($(document).has(exceptions_list[i].title).length > 0) {
+              if ($(exceptions_list[i].title).has(e.currentTarget).length > 0) {
+                //Avoid copy and paste
+                changeModalContent(e, external_url);
+              }
+              else {
+                changeModalContent(e, external_url);
+                //Avoid copy and paste
+                mustAddHandlers = true;
+              }
+            }
+          }
+        }
         //Show the modal
         $('#extlink-extra-leaving-bootstrap-modal').modal('show');
       }
@@ -449,6 +464,9 @@ function changeModalContent (e, external_url) {
               });
         }
         break;
+      }
+      else {
+        $('#extlink-extra-leaving-bootstrap-modal .modal-body').html(Drupal.settings.extlink_extra.extlink_alert_text.value);
       }
     }
   }

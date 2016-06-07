@@ -45,6 +45,7 @@ function extlink_extra_page_build() {
       'extlink_alert_type' => variable_get('extlink_alert_type', ''),
       'extlink_alert_timer' => variable_get('extlink_alert_timer', 0),
       'extlink_alert_url' => url('now-leaving', array('query' => $aQuery)),
+      'extlink_alert_text' => variable_get('extlink_alert_text', ''),
       'extlink_cache_fix' => variable_get('extlink_cache_fix', 0),
       'extlink_exclude_warning' => variable_get('extlink_exclude_warning', ''),
       'extlink_508_fix' => variable_get('extlink_508_fix', 0),
