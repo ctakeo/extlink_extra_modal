@@ -6,7 +6,5 @@ Don't remove any CSS classes if you want them to function correctly, but add any
 */
 ?>
 <div class="extlink-extra-leaving">
-  <?php 
-  		print $alert_text; 
-  ?>
+  <?php print $alert_text; ?>
 </div>

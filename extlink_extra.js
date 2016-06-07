@@ -271,6 +271,18 @@ Drupal.behaviors.extlink_extra = {
         });
       }
       else {
+        $('#extlink-extra-leaving-bootstrap-modal #modal-go-button').off('click');
+        $('#extlink-extra-leaving-bootstrap-modal #modal-go-button').on('click', function() {
+          if (Drupal.settings.extlink.extTarget != 0) { //If the user selected to open the links in a new tab
+            redirect('go', external_url, true);
+          }
+          else {
+            redirect('go', external_url, false);
+          }
+          //After the modal closes we remove it from the html. Doing this avoid a lot of copy and paste.
+          $('.extlink-extra-leaving').remove();
+          $('.modal-backdrop').remove();
+        });
         //Show the modal
         $('#extlink-extra-leaving-bootstrap-modal').modal('show');
       }
